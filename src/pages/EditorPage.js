@@ -16,6 +16,8 @@ function EditorPage() {
     reactNavigator("/");
   }
 
+  const [clients, setClients] = useState([]);
+
   useEffect(() => {
     const init = async () => {
       socketRef.current = await initSocket();
@@ -27,18 +29,22 @@ function EditorPage() {
         username: location.state.username,
       });
 
-      socketRef.current.on("joined", ({clients,username,socketId}) => {
-        console.log("hi");
-        if (username !== location.state.username){
+      socketRef.current.on("joined", ({ clients, username, socketId }) => {
+        if (username !== location.state.username) {
           toast.success(`${username} joined the room`);
         }
         setClients(clients);
-      })
+      });
+
+      socketRef.current.on("disconnected", ({ socketId, username }) => {
+        toast.success(`${username} left the room`);
+        setClients((prev) => {
+          return prev.filter((client) => client.socketId !== socketId);
+        });
+      });
     };
     init();
   }, []);
-
-  const [clients, setClients] = useState([]);
 
   return (
     <div>
