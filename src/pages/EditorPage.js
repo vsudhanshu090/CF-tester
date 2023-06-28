@@ -46,6 +46,22 @@ function EditorPage() {
     init();
   }, []);
 
+
+  async function copyRoomId(){
+    try{
+      await navigator.clipboard.writeText(location.state.roomId);
+      toast.success("room id has been copied to your clipboard")
+    }
+    catch(e){
+      toast.error("could not copy room id");
+      console.error(e);
+    }
+  }
+
+  function leaveRoom(){
+    reactNavigator("/");
+  }
+
   return (
     <div>
       <h3>connected : </h3>
@@ -53,8 +69,8 @@ function EditorPage() {
       {clients.map((client) => (
         <Client key={client.index} username={client.username} />
       ))}
-      <button>copy room id</button>
-      <button>leave</button>
+      <button onClick={copyRoomId}>copy room id</button>
+      <button onClick={leaveRoom}>leave</button>
       <hr></hr>
 
       <Editor />
