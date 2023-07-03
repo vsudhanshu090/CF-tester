@@ -7,6 +7,7 @@ import toast from "react-hot-toast";
 
 function EditorPage() {
   const socketRef = useRef(null);
+  const codeRef = useRef(null);
   const location = useLocation();
   const reactNavigator = useNavigate();
 
@@ -34,6 +35,9 @@ function EditorPage() {
           toast.success(`${username} joined the room`);
         }
         setClients(clients);
+
+        console.log(codeRef.current);
+        socketRef.current.emit("firstJoinCodeSync", { code: codeRef.current, socketId});
       });
 
       socketRef.current.on("disconnected", ({ socketId, username }) => {
@@ -46,19 +50,17 @@ function EditorPage() {
     init();
   }, []);
 
-
-  async function copyRoomId(){
-    try{
+  async function copyRoomId() {
+    try {
       await navigator.clipboard.writeText(location.state.roomId);
-      toast.success("room id has been copied to your clipboard")
-    }
-    catch(e){
+      toast.success("room id has been copied to your clipboard");
+    } catch (e) {
       toast.error("could not copy room id");
       console.error(e);
     }
   }
 
-  function leaveRoom(){
+  function leaveRoom() {
     reactNavigator("/");
   }
 
@@ -73,7 +75,13 @@ function EditorPage() {
       <button onClick={leaveRoom}>leave</button>
       <hr></hr>
 
-      <Editor />
+      <Editor
+        roomId={location.state.roomId}
+        socketRef={socketRef}
+        onCodeChange={(code) => {
+          codeRef.current = code;
+        }}
+      />
     </div>
   );
 }

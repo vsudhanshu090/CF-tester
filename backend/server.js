@@ -52,6 +52,21 @@ io.on("connection", (socket) => {
     socket.leave();
   });
 
+  socket.on("codeChange", ({ roomId, code }) => {
+    const clients = getAllConnectedClients(roomId);
+
+    clients.forEach(({ socketId }) => {
+      io.to(socketId).emit("codeSync", {
+        inputCode: code,
+      });
+    });
+  });
+
+  socket.on("firstJoinCodeSync", ({code, socketId}) => {
+    console.log(code);
+    console.log(socketId);
+    io.to(socketId).emit("codeSync", {inputCode: code});
+  });
 });
 
 server.listen(6009, () => {

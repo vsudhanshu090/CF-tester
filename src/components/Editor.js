@@ -1,11 +1,29 @@
 import React, { useState, useEffect } from "react";
 import CodeEditor from "@uiw/react-textarea-code-editor";
-import { initSocket } from "../socket.js";
 
-function Editor() {
+function Editor({ roomId, socketRef, onCodeChange }) {
   const [code, setCode] = useState();
 
-  function handleCodeChange() {}
+  function handleCodeChange(e) {
+    setCode(e.target.value);
+  }
+
+  if (socketRef.current) {
+    socketRef.current.on("codeSync", ({ inputCode }) => {
+      setCode(inputCode);
+    });
+  }
+
+  useEffect(() => {
+    onCodeChange(code);
+    if (socketRef.current) {
+      socketRef.current.emit("codeChange", { roomId, code });
+
+      socketRef.current.on("codeSync", ({ inputCode }) => {
+        setCode(inputCode);
+      });
+    }
+  }, [code]);
 
   return (
     <>
@@ -22,6 +40,7 @@ function Editor() {
             "ui-monospace,SFMono-Regular,SF Mono,Consolas,Liberation Mono,Menlo,monospace",
         }}
       />
+      <h1>{code}</h1>
     </>
   );
 }
