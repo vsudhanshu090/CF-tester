@@ -33,13 +33,13 @@ function Input({ roomId, socketRef, onInputChange }) {
         onChange={handleInputChange}
         padding={15}
         style={{
-          fontSize: 12,
+          height: "175px",
+          fontSize: 15,
           backgroundColor: "#000",
           fontFamily:
-            "ui-monospace,SFMono-Regular,SF Mono,Consolas,Liberation Mono,Menlo,monospace",
+            "Consolas",
         }}
       />
-      <h1>{input}</h1>
     </>
   );
 }

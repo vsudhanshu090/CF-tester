@@ -4,13 +4,16 @@ import { initSocket } from "../socket.js";
 import Client from "../components/Client.js";
 import Editor from "../components/Editor.js";
 import Input from "../components/Input.js";
+import Output from "../components/Output.js";
 import toast from "react-hot-toast";
+import "./EditorPageStyles.css";
 
 function EditorPage() {
   const socketRef = useRef(null);
   const codeRef = useRef(null);
   const langRef = useRef({ value: "cpp", label: "C++" });
   const inputRef = useRef(null);
+  const inputRequiredRef = useRef(false);
   const location = useLocation();
   const reactNavigator = useNavigate();
 
@@ -24,22 +27,48 @@ function EditorPage() {
 
   function handleCodeSubmit() {
     const lang = langRef.current.value;
+    const ipReq = inputRequiredRef.current;
 
-    if (lang === "cpp") {
-      socketRef.current.emit("submitcpp", {
-        code: codeRef.current,
-        roomId: location.state.roomId,
-      });
-    } else if (lang === "python") {
-      socketRef.current.emit("submitpy", {
-        code: codeRef.current,
-        roomId: location.state.roomId,
-      });
-    } else if (lang === "c") {
-      socketRef.current.emit("submitcpp", {
-        code: codeRef.current,
-        roomId: location.state.roomId,
-      });
+
+    if (ipReq === false) {
+      if (lang === "cpp") {
+        socketRef.current.emit("submitcpp", {
+          code: codeRef.current,
+          roomId: location.state.roomId,
+        });
+      } else if (lang === "python") {
+        socketRef.current.emit("submitpy", {
+          code: codeRef.current,
+          roomId: location.state.roomId,
+        });
+      } else if (lang === "c") {
+        socketRef.current.emit("submitcpp", {
+          code: codeRef.current,
+          roomId: location.state.roomId,
+        });
+      }
+    }
+    else{
+      if (lang === "cpp") {
+        console.log(inputRef.current);
+        socketRef.current.emit("submitcppwithip", {
+          code: codeRef.current,
+          input: inputRef.current,
+          roomId: location.state.roomId,
+        });
+      } else if (lang === "python") {
+        socketRef.current.emit("submitpywithip", {
+          code: codeRef.current,
+          input: inputRef.current,
+          roomId: location.state.roomId,
+        });
+      } else if (lang === "c") {
+        socketRef.current.emit("submitcppwithip", {
+          code: codeRef.current,
+          input: inputRef.current,
+          roomId: location.state.roomId,
+        });
+      }
     }
   }
 
@@ -90,9 +119,9 @@ function EditorPage() {
   async function copyRoomId() {
     try {
       await navigator.clipboard.writeText(location.state.roomId);
-      toast.success("room id has been copied to your clipboard");
+      toast.success("Room ID has been copied to your clipboard");
     } catch (e) {
-      toast.error("could not copy room id");
+      toast.error("Could not copy Room ID");
       console.error(e);
     }
   }
@@ -102,37 +131,62 @@ function EditorPage() {
   }
 
   return (
-    <>
-      <h3>connected : </h3>
-
-      {clients.map((client) => (
-        <Client key={client.index} username={client.username} />
-      ))}
-      <button onClick={copyRoomId}>copy room id</button>
-      <button onClick={leaveRoom}>leave</button>
-      <hr></hr>
-
-      <Editor
-        roomId={location.state.roomId}
-        socketRef={socketRef}
-        onCodeChange={(code) => {
-          codeRef.current = code;
-        }}
-        onLangChange={(lang) => {
-          langRef.current = lang;
-        }}
-      />
-      <Input
-        roomId={location.state.roomId}
-        socketRef={socketRef}
-        onInputChange={(input) => {
-          inputRef.current = input;
-        }}
-      />
-
-      <button onClick={handleCodeSubmit}>submit</button>
-      <h1>{output}</h1>
-    </>
+    <div className="ed-main-container">
+      <div className="ed-grid-container">
+        <div className="ed-left-side">
+          <h1 className="ed-title">CoWrite IDE</h1>
+          <hr className="ed-hr" />
+          <h3 className="ed-connected-text">Connected-users :</h3>
+          <div className="ed-client-list">
+            {clients.map((client) => (
+              <Client key={client.index} username={client.username} />
+            ))}
+          </div>
+          <button className="ed-copy-button" onClick={copyRoomId}>
+            Copy Room ID
+          </button>
+          <br />
+          <button className="ed-leave-button" onClick={leaveRoom}>
+            Leave
+          </button>
+        </div>
+        <div className="separator"></div>
+        <div className="ed-right-side">
+          <Editor
+            roomId={location.state.roomId}
+            socketRef={socketRef}
+            onCodeChange={(code) => {
+              codeRef.current = code;
+            }}
+            onLangChange={(lang) => {
+              langRef.current = lang;
+            }}
+            onInputRequiredChange={(inputRequired) => {
+              inputRequiredRef.current = inputRequired;
+            }}
+          />
+          <hr />
+          <div className="grid-input-output">
+            <div className="input-grid">
+              <Input
+                roomId={location.state.roomId}
+                socketRef={socketRef}
+                onInputChange={(input) => {
+                  inputRef.current = input;
+                }}
+              />
+              <button className="ed-submit-button" onClick={handleCodeSubmit}>
+                Submit
+              </button>
+            </div>
+            <div className="separator"></div>
+            <div className="output-grid">
+              <Output op={output} />
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
   );
 }
 

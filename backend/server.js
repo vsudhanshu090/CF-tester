@@ -60,8 +60,34 @@ io.on("connection", (socket) => {
     const clients = getAllConnectedClients(roomId);
 
     clients.forEach(({ socketId }) => {
-      var envData = { OS: "windows" , options: {timeout: 10000}};
+      var envData = { OS: "windows", options: { timeout: 10000 } };
       compiler.compilePython(envData, code, function (data) {
+        if (data.error)
+          io.to(socketId).emit("outputReady", { givenOutput: data.error });
+        else io.to(socketId).emit("outputReady", { givenOutput: data.output });
+      });
+    });
+  });
+
+  socket.on("submitcppwithip", ({ code, input, roomId }) => {
+    const clients = getAllConnectedClients(roomId);
+
+    clients.forEach(({ socketId }) => {
+      var envData = { OS: "windows", cmd: "g++", options: { timeout: 10000 } };
+      compiler.compileCPPWithInput(envData, code, input, function (data) {
+        if (data.error)
+          io.to(socketId).emit("outputReady", { givenOutput: data.error });
+        else io.to(socketId).emit("outputReady", { givenOutput: data.output });
+      });
+    });
+  });
+
+  socket.on("submitpywithip", ({ code, input, roomId }) => {
+    const clients = getAllConnectedClients(roomId);
+
+    clients.forEach(({ socketId }) => {
+      var envData = { OS: "windows", options: { timeout: 10000 } };
+      compiler.compilePythonWithInput(envData, code, input, function (data) {
         if (data.error)
           io.to(socketId).emit("outputReady", { givenOutput: data.error });
         else io.to(socketId).emit("outputReady", { givenOutput: data.output });
