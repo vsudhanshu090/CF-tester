@@ -3,18 +3,44 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { initSocket } from "../socket.js";
 import Client from "../components/Client.js";
 import Editor from "../components/Editor.js";
+import Input from "../components/Input.js";
 import toast from "react-hot-toast";
 
 function EditorPage() {
   const socketRef = useRef(null);
   const codeRef = useRef(null);
+  const langRef = useRef({ value: "cpp", label: "C++" });
+  const inputRef = useRef(null);
   const location = useLocation();
   const reactNavigator = useNavigate();
+
+  const [output, setOutput] = useState("");
 
   function handleErrors(e) {
     console.log("socket error", e);
     toast.error("Socket connection failed");
     reactNavigator("/");
+  }
+
+  function handleCodeSubmit() {
+    const lang = langRef.current.value;
+
+    if (lang === "cpp") {
+      socketRef.current.emit("submitcpp", {
+        code: codeRef.current,
+        roomId: location.state.roomId,
+      });
+    } else if (lang === "python") {
+      socketRef.current.emit("submitpy", {
+        code: codeRef.current,
+        roomId: location.state.roomId,
+      });
+    } else if (lang === "c") {
+      socketRef.current.emit("submitcpp", {
+        code: codeRef.current,
+        roomId: location.state.roomId,
+      });
+    }
   }
 
   const [clients, setClients] = useState([]);
@@ -36,8 +62,19 @@ function EditorPage() {
         }
         setClients(clients);
 
-        console.log(codeRef.current);
-        socketRef.current.emit("firstJoinCodeSync", { code: codeRef.current, socketId});
+        socketRef.current.emit("firstJoinCodeSync", {
+          code: codeRef.current,
+          socketId,
+        });
+        socketRef.current.emit("firstJoinInputSync", {
+          input: inputRef.current,
+          socketId,
+        });
+      });
+
+      socketRef.current.on("outputReady", ({ givenOutput }) => {
+        setOutput(givenOutput);
+        socketRef.current.emit("flushFiles", {});
       });
 
       socketRef.current.on("disconnected", ({ socketId, username }) => {
@@ -65,7 +102,7 @@ function EditorPage() {
   }
 
   return (
-    <div>
+    <>
       <h3>connected : </h3>
 
       {clients.map((client) => (
@@ -81,8 +118,21 @@ function EditorPage() {
         onCodeChange={(code) => {
           codeRef.current = code;
         }}
+        onLangChange={(lang) => {
+          langRef.current = lang;
+        }}
       />
-    </div>
+      <Input
+        roomId={location.state.roomId}
+        socketRef={socketRef}
+        onInputChange={(input) => {
+          inputRef.current = input;
+        }}
+      />
+
+      <button onClick={handleCodeSubmit}>submit</button>
+      <h1>{output}</h1>
+    </>
   );
 }
 

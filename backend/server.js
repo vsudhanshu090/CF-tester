@@ -7,6 +7,10 @@ const { Server } = require("socket.io");
 const server = http.createServer(app);
 const io = new Server(server);
 
+var compiler = require("compilex");
+var options = { stats: true }; //prints stats on console
+compiler.init(options);
+
 const userSocketMap = {};
 
 function getAllConnectedClients(roomId) {
@@ -39,6 +43,38 @@ io.on("connection", (socket) => {
     });
   });
 
+  socket.on("submitcpp", ({ code, roomId }) => {
+    const clients = getAllConnectedClients(roomId);
+
+    clients.forEach(({ socketId }) => {
+      var envData = { OS: "windows", cmd: "g++", options: { timeout: 10000 } };
+      compiler.compileCPP(envData, code, function (data) {
+        if (data.error)
+          io.to(socketId).emit("outputReady", { givenOutput: data.error });
+        else io.to(socketId).emit("outputReady", { givenOutput: data.output });
+      });
+    });
+  });
+
+  socket.on("submitpy", ({ code, roomId }) => {
+    const clients = getAllConnectedClients(roomId);
+
+    clients.forEach(({ socketId }) => {
+      var envData = { OS: "windows" , options: {timeout: 10000}};
+      compiler.compilePython(envData, code, function (data) {
+        if (data.error)
+          io.to(socketId).emit("outputReady", { givenOutput: data.error });
+        else io.to(socketId).emit("outputReady", { givenOutput: data.output });
+      });
+    });
+  });
+
+  socket.on("flushFiles", () => {
+    compiler.flush(function () {
+      console.log("All temporary files flushed !");
+    });
+  });
+
   socket.on("disconnecting", () => {
     const rooms = Array.from(socket.rooms);
     rooms.forEach((roomId) => {
@@ -62,10 +98,22 @@ io.on("connection", (socket) => {
     });
   });
 
-  socket.on("firstJoinCodeSync", ({code, socketId}) => {
-    console.log(code);
-    console.log(socketId);
-    io.to(socketId).emit("codeSync", {inputCode: code});
+  socket.on("firstJoinCodeSync", ({ code, socketId }) => {
+    io.to(socketId).emit("codeSync", { inputCode: code });
+  });
+
+  socket.on("inputChange", ({ roomId, input }) => {
+    const clients = getAllConnectedClients(roomId);
+
+    clients.forEach(({ socketId }) => {
+      io.to(socketId).emit("inputSync", {
+        inputInput: input,
+      });
+    });
+  });
+
+  socket.on("firstJoinInputSync", ({ input, socketId }) => {
+    io.to(socketId).emit("inputSync", { inputInput: input });
   });
 });
 
