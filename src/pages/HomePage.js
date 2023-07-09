@@ -82,6 +82,18 @@ function HomePage() {
           Create a Room!
         </a>
       </div>
+
+      <footer className="footer">
+      <hr></hr>
+        <div className="footer-content">
+          <p>Made by Sudhanshu</p>
+          <div className="vertical-line"></div>
+          <div className="social-links">
+            <a href="https://github.com/vsudhanshu090">GitHub</a>
+            <a href="https://www.linkedin.com/in/sudhanshu-verma-4516791ba/">LinkedIn</a>
+          </div>
+        </div>
+      </footer>
     </div>
   );
 }

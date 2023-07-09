@@ -129,3 +129,35 @@ ul, ol {
 .inputArea {
   font-family: "Work Sans", sans-serif;
 }
+
+
+.footer {
+  background-color: #222222;
+  padding: 20px;
+  text-align: center;
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+}
+
+.footer-content {
+  font-family: "Nobile", sans-serif;
+  font-size: 13px;
+  display: flex;
+  color: white;
+  align-items: center;
+  justify-content: center;
+}
+
+.vertical-line {
+  height: 20px;
+  width: 1px;
+  background-color: #6b728e;
+  margin: 0 10px;
+}
+
+.social-links a {
+  margin: 0 5px;
+}
+
