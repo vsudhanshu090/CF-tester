@@ -8,5 +8,5 @@ export const initSocket = async () => {
         transports: ['websocket'],
     }
 
-    return io("http://localhost:6009" , options);
+    return io("https://cowrite-ide-backend.onrender.com" , options);
 }
